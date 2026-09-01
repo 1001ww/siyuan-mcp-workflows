@@ -11,7 +11,7 @@
 
 ## 内容
 
-- `SKILL.md`：可移植的 Skill 定义。
+- `skills/siyuan-mcp-workflows/SKILL.md`：可移植的 Skill 定义。
 
 ## 设计取舍
 
@@ -35,6 +35,12 @@
 ## 安装
 
 使用 Agent 的 Skill 安装机制安装此目录，然后开启新会话以刷新 Skill 索引。使用前需已配置并连接可用的 SiYuan MCP 服务。
+
+也可以通过 `skills.sh` CLI 安装：
+
+```bash
+npx skills add 1001ww/siyuan-mcp-workflows --skill siyuan-mcp-workflows
+```
 
 ## 适用范围
 
