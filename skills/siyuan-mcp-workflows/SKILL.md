@@ -1,7 +1,7 @@
 ---
 name: siyuan-mcp-workflows
 description: Use SiYuan MCP safely for search and block editing.
-version: 0.1.0
+version: 0.2.0
 author: weish, Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -71,6 +71,8 @@ back to direct database or filesystem edits unless the user explicitly asks.
 ## Edit Documents and Blocks
 
 1. Read the current document and identify the narrowest correct edit scope.
+   When adding new content rather than changing existing text, follow
+   Inserting into Existing Documents for placement and heading level.
 2. Use a block-level update, insert, move, or attribute operation for a local
    change. Use document-level replacement only when the user intends to replace
    the whole document.
@@ -80,6 +82,41 @@ back to direct database or filesystem edits unless the user explicitly asks.
    path, or guessed pattern.
 5. Read the changed block or document after the write. Completion criterion: the
    requested change is present and adjacent content remains intact.
+
+## Inserting into Existing Documents
+
+Adding content to a document the user has already written is a placement
+decision derived from that document's outline, not an append to whatever
+section is convenient:
+
+1. Read the heading outline first: use the outline tool if the MCP exposes
+   one, otherwise list every heading with its level from the document content.
+   Do not write anything until you can see the full outline and the content of
+   the section you plan to touch.
+2. Match the new content to the outline by meaning, then classify it:
+   - It supplements, details, or expands the content of an existing section:
+     it belongs under that section's heading as a child. Level = that
+     heading's level + 1.
+   - It is a point of the same rank as an existing subheading: it is a
+     sibling. Level = that subheading's level.
+   - It is an independent new topic: level = the level of the headings it
+     will sit beside.
+   The user's wording signals the relationship: "supplement" or "expand this
+   point" means a child; "another point" or "on the same topic level" means a
+   sibling.
+3. Keep sibling levels uniform: all headings directly under one parent use the
+   same level. If an H2 already has H3 children, content parallel to those
+   children is H3, never H4. Never pick a deeper level because the content
+   comes later in the document, and never flatten to the parent's own level
+   when the content only makes sense as a supplement to that parent.
+4. Insert at the boundary of the chosen section, not wherever the tool makes
+   it easy. A section ends right before the next heading whose level is less
+   than or equal to the section heading's own level; anchor the insert to the
+   block before that heading using the tool's explicit position parameters
+   (previous/next block ID). Do not blindly prepend or append to the document.
+5. Read back the outline after writing. Completion criterion: the new heading
+   appears at the intended level and position and no existing heading moved.
+   If the level is wrong, update that block in place rather than leaving it.
 
 ## Links, Tags, and Attributes
 
@@ -134,6 +171,10 @@ single item to a batch without a new explicit confirmation.
   Fall back to keyword/full-text search; do not claim semantic coverage.
 - Raw SQL may bypass server-level affordances. Keep it read-only unless the user
   explicitly requests otherwise and the MCP server documents write support.
+- A heading's level expresses its relationship in the outline — a child of the
+  section it supplements, a sibling of the subheadings it parallels — never its
+  position in the file. Inserting without reading the outline first produces
+  wrongly leveled headings.
 
 ## Verification
 
